@@ -1,0 +1,21 @@
+image: node:16-alpine3.11
+
+stages:
+  - test
+  - build
+
+testing:
+  stage: test
+  script:
+    - yarn
+    - yarn lint
+    - yarn test
+build:
+  stage: build
+  script: 
+    - yarn
+    - npm i -g solc
+    - cd node_modules && solcjs --abi ../contracts/*.sol -o ../builds/
+  artifacts:
+    paths:
+      - ./builds/
