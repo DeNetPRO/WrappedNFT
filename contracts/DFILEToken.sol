@@ -49,7 +49,7 @@ contract DFILEToken is Ownable, ERC20 {
         10 = 0.01%
         1 = 0.001%
     */
-    uint public sharesRatio =  100000;
+    uint public constant sharesRatio =  100000;
 
     mapping (address => uint) public shares;
     mapping (uint32 => address) public sharesVector;
@@ -117,7 +117,6 @@ contract DFILEToken is Ownable, ERC20 {
                 2. nextTime + 365 days
                 3. currentYear++
         */
-
         treasury = address(0);
         timeNextYear = block.timestamp + 31536000; // move next year;
         currentYear = currentYear + 1;
