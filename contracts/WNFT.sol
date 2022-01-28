@@ -5,6 +5,8 @@
     WNFT - Wrapped NFT made for NFT Staking program in DeNet
 */
 
+pragma solidity ^0.8.0;
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -27,8 +29,14 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
     uint public feePoint = 10000;
 
     mapping (uint => WrappedStruct) wrappedData;
-
-    function collectTraffic(uint length, uint[] calldata _tokenId, uint[] calldata _traffic) public onlyGateway {
+   
+    /**
+        @dev Collect Traffic to NFT's and transfer referalFee to this contract
+        @param length uint - size of arrays
+        @param _tokenId - array of token ids [1,2,3]
+        @param _traffic - array of amount of bytes [1024^3, 5x1024^3, 10x1024^3]
+    */
+    function collectTraffic(uint length, uint[] calldata _tokenId, uint[] calldata _traffic) public onlyGateway whenNotPaused {
         uint _trafficBefore = _totalTraffic;
         for (uint i = 0; i < length; i = i + 1) {
             if (_exists(_tokenId[i])) {
@@ -42,7 +50,11 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
         token.transferFrom(msg.sender, address(this),  charged);
     }
 
-    // Return Reward Amount of NFT
+    /**
+        @dev (NFT.traffic - NFT.payedTraffic) x this.tbBalance / totalTraffic
+        @param _itemId - NFT token id
+        @return TB balance of this token
+    */
     function getNFTBalance(uint _itemId) public view returns(uint) {
         IERC20 token = IERC20(_TBAddress);
         uint curBalance = token.balanceOf(address(this));
@@ -50,7 +62,7 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
         return share;
     }
 
-    function claimReward(uint _itemId) public {
+    function claimReward(uint _itemId) public whenNotPaused {
         require(ownerOf(_itemId) == msg.sender, "claim: not owner");
         uint amountReturns = getNFTBalance(_itemId);
         wrappedData[_itemId].payedTraffic = wrappedData[_itemId].traffic;
@@ -77,7 +89,7 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
         3. Create pointer: keccak(address, token_id)
         4. Create wrapped NFT
     */
-    function wrap(address _contract, uint256 tokenId, bytes32 _contentHash, string calldata _DeNetStorageURI, uint contentSize) public {
+    function wrap(address _contract, uint256 tokenId, bytes32 _contentHash, string calldata _DeNetStorageURI, uint contentSize) public whenNotPaused {
         IERC721 origin = IERC721(_contract);
         require(origin.getApproved(tokenId) == address(this), "wrap: Not approved");
         require(origin.ownerOf(tokenId) == msg.sender,"wrap: sender not owner");
@@ -117,7 +129,7 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
         2. Transfer to Sender
         3. Burn wrapped
     */
-    function unwrap(uint tokenId) public {
+    function unwrap(uint tokenId) public whenNotPaused {
         require(ownerOf(tokenId) == msg.sender, "unwrap: sender not owner of token");
         claimReward(tokenId);
         IERC721 origin = IERC721(wrappedData[tokenId].oldAddress);
