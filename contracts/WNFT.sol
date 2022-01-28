@@ -3,6 +3,8 @@
     Created by DeNet
 
     WNFT - Wrapped NFT made for NFT Staking program in DeNet
+
+    Minimal register size of NFT ~1MB
 */
 
 pragma solidity ^0.8.0;
