@@ -62,9 +62,13 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
         return share;
     }
 
+    /**
+        @dev Owner of item can get collected reward
+    */
     function claimReward(uint _itemId) public whenNotPaused {
         require(ownerOf(_itemId) == msg.sender, "claim: not owner");
         uint amountReturns = getNFTBalance(_itemId);
+        require(amountReturns > 0, "claim: no amount to claim");
         wrappedData[_itemId].payedTraffic = wrappedData[_itemId].traffic;
 
         IERC20 token = IERC20(_TBAddress);

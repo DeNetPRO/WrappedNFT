@@ -61,16 +61,16 @@ contract PoSAdmin  is IPoSAdmin, Ownable {
         _;
     }
 
-    function changePoS(address _newAddress) public onlyOwner {
+    function changePoS(address _newAddress) public onlyGovernance {
         proofOfStorageAddress = _newAddress;
         emit ChangePoSAddress(_newAddress);
     }
 
-    function addGateway(address account) public onlyOwner {
+    function addGateway(address account) public onlyGovernance {
         _isGateway[account] = true;
     }
 
-    function delGateway(address account) public onlyOwner {
+    function delGateway(address account) public onlyGovernance {
         _isGateway[account] = false;
     }
 }
