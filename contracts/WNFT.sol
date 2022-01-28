@@ -9,24 +9,54 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./PoSAdmin.sol";
+import "./interfaces/IWNFT.sol";
 
-contract Wrapper is Ownable, ERC721 {
+contract Wrapper is PoSAdmin, ERC721, IWrapper {
     using SafeMath for uint;
 
-    constructor () ERC721("DeNet WrappedNFT", "WNFT") {}
+    constructor (address tbAddress) ERC721("DeNet WrappedNFT", "WNFT") PoSAdmin(address(0)) {
+        _TBAddress = tbAddress;
+    }
     
     uint256 private _wrappedSupply = 1;
     uint256 private _totalTraffic = 0;
+    address private _TBAddress;
+    uint public referalFee = 500; // 5% 
+    uint public feePoint = 10000;
 
-    struct WrappedStruct {
-        string URI;
-        uint contentSize; // in bytes
-        uint traffic; // uint traffic 
-        uint balance; // Amount of tokens TB/Year
-        bytes32 contentHash; // Hash of content
-        address oldAddress; // address of old collection
-        uint tokenId; // id of old collection
-        bool burned; // is it burned;
+    mapping (uint => WrappedStruct) wrappedData;
+
+    function collectTraffic(uint length, uint[] calldata _tokenId, uint[] calldata _traffic) public onlyGateway {
+        uint _trafficBefore = _totalTraffic;
+        for (uint i = 0; i < length; i = i + 1) {
+            if (_exists(_tokenId[i])) {
+                wrappedData[_tokenId[i]].traffic = wrappedData[_tokenId[i]].traffic.add(_traffic[i]);
+                _totalTraffic = _totalTraffic.add(_traffic[i]);
+            }
+        }
+        uint charged = _totalTraffic.sub(_trafficBefore).mul(referalFee).div(feePoint).div(1073741824).mul(10e18);
+
+        IERC20 token = IERC20(_TBAddress);
+        token.transferFrom(msg.sender, address(this),  charged);
+    }
+
+    // Return Reward Amount of NFT
+    function getNFTBalance(uint _itemId) public view returns(uint) {
+        IERC20 token = IERC20(_TBAddress);
+        uint curBalance = token.balanceOf(address(this));
+        uint share =  wrappedData[_itemId].traffic.sub(wrappedData[_itemId].payedTraffic).mul(curBalance).div(_totalTraffic);
+        return share;
+    }
+
+    function claimReward(uint _itemId) public {
+        require(ownerOf(_itemId) == msg.sender, "claim: not owner");
+        uint amountReturns = getNFTBalance(_itemId);
+        wrappedData[_itemId].payedTraffic = wrappedData[_itemId].traffic;
+
+        IERC20 token = IERC20(_TBAddress);
+        token.transfer(msg.sender, amountReturns);
     }
 
     function getPointer(uint _tokenId) public view returns(bytes32) {
@@ -37,7 +67,6 @@ contract Wrapper is Ownable, ERC721 {
         ));
     }
     
-    mapping (uint => WrappedStruct) wrappedData;
     mapping (bytes32 => uint) wrappedPointer;
 
     /**
@@ -76,9 +105,9 @@ contract Wrapper is Ownable, ERC721 {
         wrappedData[curTokenId].tokenId = tokenId;
         wrappedData[curTokenId].contentHash = _contentHash;
         wrappedData[curTokenId].burned = false;
-        wrappedData[curTokenId].traffic = 1048576; // one megabyte of data traffic base
+        wrappedData[curTokenId].traffic = 1; // one megabyte of data traffic base
 
-        _totalTraffic = _totalTraffic.add(1048576);
+        _totalTraffic = _totalTraffic.add(1);
     }
 
     /**
@@ -90,6 +119,7 @@ contract Wrapper is Ownable, ERC721 {
     */
     function unwrap(uint tokenId) public {
         require(ownerOf(tokenId) == msg.sender, "unwrap: sender not owner of token");
+        claimReward(tokenId);
         IERC721 origin = IERC721(wrappedData[tokenId].oldAddress);
         origin.transferFrom(address(this), msg.sender, wrappedData[tokenId].tokenId);
         wrappedData[tokenId].burned = true;
