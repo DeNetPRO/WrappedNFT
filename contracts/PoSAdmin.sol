@@ -49,6 +49,7 @@ contract PoSAdmin  is IPoSAdmin, Ownable {
     // Only owner can change governance address
     function changeGovernance(address _new) external onlyOwner{
         governanceAddress = _new;
+        paused = true;
     }
 
     modifier onlyPoS() {
