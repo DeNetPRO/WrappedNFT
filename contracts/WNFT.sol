@@ -61,22 +61,39 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
         IERC20 token = IERC20(_TBAddress);
         uint curBalance = token.balanceOf(address(this));
         uint share =  wrappedData[_itemId].traffic.sub(wrappedData[_itemId].payedTraffic).mul(curBalance).div(_totalTraffic);
+        if (share < 931322574) return 0; // means less 1 MB reward
         return share;
     }
 
     /**
         @dev Owner of item can get collected reward
+        Check owner of itemId, no need to check _exist, because in exist check owner != 0
     */
     function claimReward(uint _itemId) public whenNotPaused {
         require(ownerOf(_itemId) == msg.sender, "claim: not owner");
         uint amountReturns = getNFTBalance(_itemId);
-        require(amountReturns > 0, "claim: no amount to claim");
-        wrappedData[_itemId].payedTraffic = wrappedData[_itemId].traffic;
-
-        IERC20 token = IERC20(_TBAddress);
-        token.transfer(msg.sender, amountReturns);
+        if (amountReturns > 0) {
+            wrappedData[_itemId].payedTraffic = wrappedData[_itemId].traffic;
+            IERC20 token = IERC20(_TBAddress);
+            token.transfer(msg.sender, amountReturns);
+        }
     }
 
+    /**
+        @dev Claim many
+        @param _itemIds - array of NFTids owned by user
+    */
+    function claimRewardMany(uint[] calldata _itemIds) public whenNotPaused {
+        for (uint i = 0; i < _itemIds.length; i = i + 1) {
+            claimReward(_itemIds[i]);
+        }
+    }
+
+    /**
+        @dev helpful for external games or apps to check, that WNFT is original NFT
+        
+        other contract calls to getPointer(_tokenId) => keccak(origin.address + origin.id)
+    */
     function getPointer(uint _tokenId) public view returns(bytes32) {
         return keccak256(
             abi.encodePacked(
@@ -84,11 +101,21 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
                     bytes32(wrappedData[_tokenId].tokenId)
         ));
     }
+
+    /**
+        @dev return full metadata, for external apps can be expensive to check, but retuns full info
+    */
+    function getMetaData(uint _tokenId) public view returns(WrappedStruct memory) {
+        return wrappedData[_tokenId];
+    }
     
+    /**
+        @dev keccak(origin.address + origin.id) => WNFT id
+    */
     mapping (bytes32 => uint) wrappedPointer;
 
     /**
-        @dev Do it!
+        @dev Make NFT as WrappedNFT
 
         1. Check is approved
         2. Check is sender == owner
