@@ -42,6 +42,7 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
         uint _trafficBefore = _totalTraffic;
         for (uint i = 0; i < length; i = i + 1) {
             if (_exists(_tokenId[i])) {
+                require(_traffic[i] > 0, "collectTraffic: traffic == 0");
                 wrappedData[_tokenId[i]].traffic = wrappedData[_tokenId[i]].traffic.add(_traffic[i]);
                 _totalTraffic = _totalTraffic.add(_traffic[i]);
             }
