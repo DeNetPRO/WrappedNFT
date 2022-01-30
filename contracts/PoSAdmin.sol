@@ -12,13 +12,20 @@ import "./interfaces/IPoSAdmin.sol";
 
 contract PoSAdmin  is IPoSAdmin, Ownable {
     address public proofOfStorageAddress = address(0);
+    address public newAddress = address(0);
     address public governanceAddress;
+    address public oldAddress;
     bool public paused = true;
     
     mapping(address => bool) _isGateway;
     
     constructor (address _pos) {
         proofOfStorageAddress = _pos;
+    }
+
+    modifier onlyOldAddress() {
+        require(msg.sender == oldAddress, "PoSAdmin: Denied by onlyOldAddress");
+        _;
     }
 
     modifier onlyGovernance() {  
@@ -50,6 +57,16 @@ contract PoSAdmin  is IPoSAdmin, Ownable {
     function changeGovernance(address _new) external onlyOwner{
         governanceAddress = _new;
         paused = true;
+    }
+
+    // Only Governance can change old address 
+    function setOldAddress(address _new) external onlyGovernance {
+        oldAddress = _new;
+    }
+
+    // Only Governance can change new address 
+    function setNewAddress(address _new) external onlyGovernance {
+        newAddress = _new;
     }
 
     modifier onlyPoS() {

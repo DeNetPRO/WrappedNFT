@@ -31,7 +31,7 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
     uint public feePoint = 10000;
 
     mapping (uint => WrappedStruct) wrappedData;
-   
+
     /**
         @dev Collect Traffic to NFT's and transfer referalFee to this contract
         @param length uint - size of arrays
@@ -65,6 +65,13 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
         if (share < 931322574) return 0; // means less 1 MB reward
         return share;
     }
+    
+    /**
+        @dev wrappedSupply - amount of minted wrapped tokens
+    */
+    function wrappedSupply() public view returns(uint) {
+        return _wrappedSupply;
+    }
 
     /**
         @dev Owner of item can get collected reward
@@ -72,6 +79,11 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
     */
     function claimReward(uint _itemId) public whenNotPaused {
         require(ownerOf(_itemId) == msg.sender, "claim: not owner");
+        /*
+            Check, if it NFT not burned and owner = address of WNFT
+        */
+        ERC721 origin = ERC721(wrappedData[_itemId].oldAddress);
+        require(origin.ownerOf(wrappedData[_itemId].tokenId) == address(this), "claim: origin.owner !+ this.governanceAddress");
         uint amountReturns = getNFTBalance(_itemId);
         if (amountReturns > 0) {
             wrappedData[_itemId].payedTraffic = wrappedData[_itemId].traffic;
@@ -88,26 +100,6 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
         for (uint i = 0; i < _itemIds.length; i = i + 1) {
             claimReward(_itemIds[i]);
         }
-    }
-
-    /**
-        @dev helpful for external games or apps to check, that WNFT is original NFT
-        
-        other contract calls to getPointer(_tokenId) => keccak(origin.address + origin.id)
-    */
-    function getPointer(uint _tokenId) public view returns(bytes32) {
-        return keccak256(
-            abi.encodePacked(
-                    wrappedData[_tokenId].oldAddress,
-                    bytes32(wrappedData[_tokenId].tokenId)
-        ));
-    }
-
-    /**
-        @dev return full metadata, for external apps can be expensive to check, but retuns full info
-    */
-    function getMetaData(uint _tokenId) public view returns(WrappedStruct memory) {
-        return wrappedData[_tokenId];
     }
     
     /**
@@ -133,10 +125,6 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
                     )
                 );
         uint curTokenId = 0;
-        origin.safeTransferFrom(msg.sender, address(this), tokenId);
-        require(origin.ownerOf(tokenId) == address(this), "wrap: fail transferfrom");
-
-
         if (wrappedPointer[pointer] != 0 ) {
             curTokenId = wrappedPointer[pointer];
         } else {
@@ -154,6 +142,50 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
         wrappedData[curTokenId].traffic = 1; // one megabyte of data traffic base
 
         _totalTraffic = _totalTraffic.add(1);
+        origin.safeTransferFrom(msg.sender, address(this), tokenId);
+        require(origin.ownerOf(tokenId) == address(this), "wrap: fail transferfrom");
+    }
+
+    /**
+        @dev SafeTransferFrom require this function
+    */
+    function onERC721Received(
+        address _operator,
+        address _from,
+        uint256 _tokenId,
+        bytes calldata _data ) public view returns(bytes4) {
+            uint itemId = wrappedPointer[
+                    keccak256(
+                        abi.encodePacked(
+                            msg.sender,
+                            bytes32(_tokenId)
+                        )
+                    )
+                ];
+            require(itemId
+                 != 0, "reciever: Not found NFT");
+            require(_from == ownerOf(itemId), "reciever: not Owner");
+            return 0x150b7a02;
+    }
+
+    /**
+        @dev helpful for external games or apps to check, that WNFT is original NFT
+        
+        other contract calls to getPointer(_tokenId) => keccak(origin.address + origin.id)
+    */
+    function getPointer(uint _tokenId) public view returns(bytes32) {
+        return keccak256(
+            abi.encodePacked(
+                    wrappedData[_tokenId].oldAddress,
+                    bytes32(wrappedData[_tokenId].tokenId)
+        ));
+    }
+
+    /**
+        @dev return full metadata, for external apps can be expensive to check, but retuns full info
+    */
+    function getMetaData(uint _tokenId) public view returns(WrappedStruct memory) {
+        return wrappedData[_tokenId];
     }
 
     /**
@@ -171,5 +203,25 @@ contract Wrapper is PoSAdmin, ERC721, IWrapper {
         wrappedData[tokenId].burned = true;
         _totalTraffic = _totalTraffic.sub(wrappedData[tokenId].traffic);
         _burn(tokenId);
+    }
+
+    function safeMigrate(uint[] calldata _itemIds) public whenPaused onlyGovernance {
+        require(newAddress != address(0), "safeMigrate: newAddress not set");
+        IWrapper _contract = IWrapper(newAddress);
+        for (uint i = 0; i < _itemIds.length; i++) {
+            // approve for transfer from
+            IERC721 origin = IERC721(wrappedData[_itemIds[i]].oldAddress);
+            if (origin.ownerOf(wrappedData[_itemIds[i]].tokenId) == address(this)) {
+                origin.approve(newAddress, wrappedData[_itemIds[i]].tokenId);
+                _contract.MigrateWNFT(wrappedData[_itemIds[i]]);
+            }
+        }
+    }
+    /**
+        @dev For future updates migration function
+    */
+    function MigrateWNFT(WrappedStruct calldata _item) public override onlyOldAddress  {
+        IERC721 origin = IERC721(_item.oldAddress);
+        require(origin.ownerOf(_item.tokenId) == msg.sender, "migrate: sender not owner");
     }
 }

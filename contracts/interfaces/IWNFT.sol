@@ -16,4 +16,6 @@ interface IWrapper {
         uint tokenId; // id of old collection
         bool burned; // is it burned;
     }
+
+    function MigrateWNFT(WrappedStruct calldata _item) external;
 }
