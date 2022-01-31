@@ -17,5 +17,70 @@ interface IWrapper {
         bool burned; // is it burned;
     }
 
+    /**
+        @dev Owner of item can get collected reward
+        Check owner of itemId, no need to check _exist, because in exist check owner != 0
+    */
+    function claimReward(uint _itemId) external;
+
+    /**
+        @dev Claim many
+        @param _itemIds - array of NFTids owned by user
+    */
+    function claimRewardMany(uint[] calldata _itemIds) external;
+
+    /**
+        @dev Make NFT as WrappedNFT
+
+        1. Check is approved
+        2. Check is sender == owner
+        3. Create pointer: keccak(address, token_id)
+        4. Create wrapped NFT
+    */
+    function wrap(
+        address _contract,
+        uint256 tokenId,
+        bytes32 _contentHash,
+        string calldata _DeNetStorageURI,
+        uint contentSize) external;
+
+    /**
+        @dev unwrap and burn
+
+        1. Sender == Owner
+        2. Transfer to Sender
+        3. Burn wrapped
+    */
+    function unwrap(uint tokenId) external;
+
+    function safeMigrate(uint[] calldata _itemIds) external;
+
     function MigrateWNFT(WrappedStruct calldata _item) external;
+
+    /**
+        @dev return Content Hash of NFT
+    */
+    function tokenContentHash(uint _itemId) external view returns(bytes32);
+
+    /**
+        @dev returns NFT Balanc of earned tokens
+    */
+    function getNFTBalance(uint _itemId) external view returns(uint);
+
+    /**
+        @dev returns Total Supply of WNFT
+    */
+    function wrappedSupply() external view returns(uint);
+
+    /**
+        @dev helpful for external games or apps to check, that WNFT is original NFT
+        
+        other contract calls to getPointer(_tokenId) => keccak(origin.address + origin.id)
+    */
+    function getPointer(uint _tokenId) external view returns(bytes32);
+
+     /**
+        @dev return full metadata, for external apps can be expensive to check, but retuns full info
+    */
+    function getMetaData(uint _tokenId) external view returns(WrappedStruct memory);
 }
