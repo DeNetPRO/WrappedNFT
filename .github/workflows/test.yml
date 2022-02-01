@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ to-deploy ]
+    branches: [ master, dev, new ]
   pull_request:
-    branches: [ to-deploy ]
+    branches: [ master, dev, new ]
 jobs:
   test:
     runs-on: ubuntu-latest
