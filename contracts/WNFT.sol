@@ -238,23 +238,4 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721 {
         IERC721 origin = IERC721(_item.oldAddress);
         require(origin.ownerOf(_item.tokenId) == msg.sender, "migrate: sender not owner");
     }
-
-    /**
-    * @dev cahnge TB Address if it updated
-    */
-    function changeTBAddress(address _new) public onlyGovernance whenPaused {
-        _TBAddress = _new;
-    }
-    
-    /**
-    * @dev if someone loose funds, it can be returned, when it contract will updated
-    */
-    function returnFunds(address _token, uint _amount, address looser) public onlyGovernance whenPaused {
-        if (address(0) == _token) {
-            payable(looser).transfer(_amount);
-        } else {
-            IERC20 tok = IERC20(_token);
-            tok.transfer(looser, _amount);
-        }
-    }
 }
