@@ -13,11 +13,12 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./PoSAdmin.sol";
 import "./interfaces/IWNFT.sol";
 
-contract Wrapper is PoSAdmin, IWrapper, ERC721 {
+contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
     using SafeMath for uint;
 
     constructor (address tbAddress) ERC721("DeNet WrappedNFT", "WNFT") PoSAdmin(address(0)) {
