@@ -57,9 +57,8 @@ contract('Wrapepr', async function ([_, w1, w2, w3]) {
                 'https://gateway.denet.pro/' + tokenId.toString(),
                 1048576, { from: treasuryWallet });
             
-            var WrappedId = await this.WrappedContract.wrappedSupply();
-            await this.WrappedContract.unwrap(WrappedId - 1, { from: treasuryWallet });
-            console.log('Supply:', WrappedId.toString(), 'Burned');
+            const WrappedId = await this.WrappedContract.tokenOfOwnerByIndex(treasuryWallet, 0);
+            await this.WrappedContract.unwrap(WrappedId, { from: treasuryWallet });
         }
     });
 });

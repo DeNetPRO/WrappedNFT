@@ -52,11 +52,7 @@ interface IWrapper {
         3. Burn wrapped
     */
     function unwrap(uint tokenId) external;
-
-    function safeMigrate(uint[] calldata _itemIds) external;
-
-    function MigrateWNFT(WrappedStruct calldata _item) external;
-
+    
     /**
         @dev return Content Hash of NFT
     */
@@ -66,20 +62,8 @@ interface IWrapper {
         @dev returns NFT Balanc of earned tokens
     */
     function getNFTBalance(uint _itemId) external view returns(uint);
-
+    
     /**
-        @dev returns Total Supply of WNFT
-    */
-    function wrappedSupply() external view returns(uint);
-
-    /**
-        @dev helpful for external games or apps to check, that WNFT is original NFT
-        
-        other contract calls to getPointer(_tokenId) => keccak(origin.address + origin.id)
-    */
-    function getPointer(uint _tokenId) external view returns(bytes32);
-
-     /**
         @dev return full metadata, for external apps can be expensive to check, but retuns full info
     */
     function getMetaData(uint _tokenId) external view returns(WrappedStruct memory);
