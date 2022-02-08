@@ -34,16 +34,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
     uint public referalFee = 500; // 5% 
     uint public feePoint = 10000;
 
-    mapping (uint => WrappedStruct) _wrappedData;
-
-    /**
-        @dev keccak(origin.address + origin.id) => WNFT Pointer
-        
-        First mint - binding pointer
-        Burn - (storing porinter)
-        Second mint - mint with old pointer
-    */
-    mapping (bytes32 => uint) wrappedPointer;
+    mapping (uint => WrappedStruct) private _wrappedData;
 
     /**
         @dev Collect Traffic to NFT's and transfer referalFee to this contract
@@ -118,7 +109,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
             Check, if it NFT not burned and owner = address of WNFT
         */
         ERC721 origin = ERC721(_wrappedData[_itemId].oldAddress);
-        require(origin.ownerOf(_wrappedData[_itemId].tokenId) == address(this), "claim: origin.owner !+ this.governanceAddress");
+        require(origin.ownerOf(_wrappedData[_itemId].tokenId) == address(this), "claim: origin.owner != this");
         uint amountReturns = getNFTBalance(_itemId);
         if (amountReturns > 0) {
             _wrappedData[_itemId].payedTraffic = _wrappedData[_itemId].traffic;
@@ -140,63 +131,66 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
     /**
         @dev Make NFT as WrappedNFT
 
-        1. Check is approved
-        2. Check is sender == owner
-        3. Create pointer: keccak(address, token_id)
-        4. Create wrapped NFT
+        1. Create pointer: keccak(address, token_id)
+        2. TransferFrom origin to this
+        3. Fill Metadata
     */
-    function wrap(address _contract, uint256 tokenId, bytes32 _contentHash, string calldata _DeNetStorageURI, uint contentSize) public override whenNotPaused {
-        IERC721 origin = IERC721(_contract);
-        require(origin.getApproved(tokenId) == address(this), "wrap: Not approved");
-        require(origin.ownerOf(tokenId) == msg.sender,"wrap: sender not owner");
+    function wrap(address originAddress, uint256 tokenId, bytes32 originContentHash, string calldata storageURI, uint contentSize) public override whenNotPaused {
+        IERC721 origin = IERC721(originAddress);
+        
+        // transfer origin to this
+        origin.transferFrom(msg.sender, address(this), tokenId);
+        
+        // check revieve
+        require(origin.ownerOf(tokenId) == address(this), "wrap: fail transferfrom");
+
+        // create pointer
         uint pointer = uint(keccak256(
                     abi.encodePacked(
-                        _contract, bytes32(tokenId)
+                        originAddress, bytes32(tokenId)
                     )
                 ));
         
-        _safeMint(msg.sender, pointer);
-        _wrappedData[pointer].URI = _DeNetStorageURI;
+        // fill metadata
+        _wrappedData[pointer].URI = storageURI;
         _wrappedData[pointer].contentSize = contentSize;
-        _wrappedData[pointer].oldAddress = _contract;
+        _wrappedData[pointer].oldAddress = originAddress;
         _wrappedData[pointer].tokenId = tokenId;
-        _wrappedData[pointer].contentHash = _contentHash;
+        _wrappedData[pointer].contentHash = originContentHash;
         _wrappedData[pointer].burned = false;
         _wrappedData[pointer].traffic = 1; // one megabyte of data traffic base
+        
+        // mint WNFT with pointer
+        _safeMint(msg.sender, pointer);
 
+        // increase Traffic and total supply
         _totalTraffic = _totalTraffic.add(1);
-        origin.safeTransferFrom(msg.sender, address(this), tokenId);
-        require(origin.ownerOf(tokenId) == address(this), "wrap: fail transferfrom");
-
         _totalSupply = _totalSupply + 1;
-    }
-
-    /**
-        @dev SafeTransferFrom require this function
-    */
-    function onERC721Received(
-        address _operator,
-        address _from,
-        uint256 _tokenId,
-        bytes calldata _data ) public view returns(bytes4) {
-            // acception tokens for transfer
-            return 0x150b7a02;
     }
 
     /**
         @dev unwrap and burn
 
-        1. Sender == Owner
+        1. Sender == Owner or Approved
         2. Transfer to Sender
         3. Burn wrapped
     */
     function unwrap(uint tokenId) public override whenNotPaused {
-        require(ownerOf(tokenId) == msg.sender, "unwrap: sender not owner of token");
+        // check owner or approved
+        require(ownerOf(tokenId) == msg.sender || isApprovedForAll(ownerOf(tokenId), msg.sender) , "unwrap: no access to this WNFT");
+        
+        // claim rewards if it possible
         claimReward(tokenId);
+
+        // return origin
         IERC721 origin = IERC721(_wrappedData[tokenId].oldAddress);
         origin.transferFrom(address(this), msg.sender, _wrappedData[tokenId].tokenId);
+        
+        // check recieved
+        require(origin.ownerOf(_wrappedData[tokenId].tokenId) == msg.sender, "unwrap: origin transfer failed");
+        
+        // burn WNFT
         _wrappedData[tokenId].burned = true;
-        _totalTraffic = _totalTraffic.sub(_wrappedData[tokenId].traffic);
         _burn(tokenId);
     }
 }
