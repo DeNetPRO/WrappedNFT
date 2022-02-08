@@ -1,11 +1,4 @@
 // SPDX-License-Identifier: MIT
-/*
-    Created by DeNet
-
-    WNFT - Wrapped NFT made for NFT Staking program in DeNet
-
-    Minimal register size of NFT ~1MB
-*/
 
 pragma solidity ^0.8.0;
 
@@ -17,6 +10,13 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./PoSAdmin.sol";
 import "./interfaces/IWNFT.sol";
+
+/**
+    @dev Contract WNFT - Wrapped NFT made for NFT Staking program in DeNet
+
+    - Minimal reward ~1MB
+    - Amount of reward 5% (constant) of traffic, will upgraded in future with governance
+*/
 
 contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
     using SafeMath for uint;

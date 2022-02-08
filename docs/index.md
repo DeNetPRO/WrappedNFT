@@ -1699,55 +1699,6 @@ struct DeNetDNS {
 }
 ```
 
-## ERC20Vesting
-
-### vestingToken
-
-```solidity
-address vestingToken
-```
-
-### constructor
-
-```solidity
-constructor(address _token) public
-```
-
-### VestingProfile
-
-```solidity
-struct VestingProfile {
-  uint64 timeStart;
-  uint64 timeEnd;
-  uint256 amount;
-  uint256 payed;
-}
-```
-
-### vestingStatus
-
-```solidity
-mapping(address &#x3D;&gt; struct ERC20Vesting.VestingProfile) vestingStatus
-```
-
-### createVesting
-
-```solidity
-function createVesting(address _user, uint64 timeStart, uint64 timeEnd, uint256 amount) public
-```
-
-### getAmountToWithdraw
-
-```solidity
-function getAmountToWithdraw(address _user) public view returns (uint256)
-```
-
-### withdraw
-
-```solidity
-function withdraw() public
-```
-
 ## ExampleNFT
 
 ### constructor
@@ -1774,167 +1725,14 @@ function mintMe() public
 function counter() public view returns (uint256)
 ```
 
-## Selection
-
-### timeVote
-
-```solidity
-mapping(address &#x3D;&gt; uint256) timeVote
-```
-
-### votesCount
-
-```solidity
-uint256 votesCount
-```
-
-### votesAmount
-
-```solidity
-uint256 votesAmount
-```
-
-### lastVotePeriod
-
-```solidity
-uint256 lastVotePeriod
-```
-
-### minVote
-
-```solidity
-uint256 minVote
-```
-
-### maxVote
-
-```solidity
-uint256 maxVote
-```
-
-### votePeriod
-
-```solidity
-uint256 votePeriod
-```
-
-### currentState
-
-```solidity
-uint256 currentState
-```
-
-### contractName
-
-```solidity
-string contractName
-```
-
-### constructor
-
-```solidity
-constructor(uint256 _minVote, uint256 _maxVote, string _name, uint256 _period) public
-```
-
-### getCurPeriod
-
-```solidity
-function getCurPeriod() public view returns (uint256)
-```
-
-### getCurrentState
-
-```solidity
-function getCurrentState() public view returns (uint256)
-```
-
-### _updateVotes
-
-```solidity
-function _updateVotes() internal
-```
-
-### voteFor
-
-```solidity
-function voteFor(address account, uint256 vote, uint256 votePower) public
-```
-
-## Governance
-
-### depositTokenAddresss
-
-```solidity
-address depositTokenAddresss
-```
-
-### depositedBalance
-
-```solidity
-mapping(address &#x3D;&gt; uint256) depositedBalance
-```
-
-### lockedAmounts
-
-```solidity
-mapping(address &#x3D;&gt; uint256) lockedAmounts
-```
-
-### unlockTime
-
-```solidity
-mapping(address &#x3D;&gt; uint256) unlockTime
-```
-
-### votes
-
-```solidity
-mapping(uint256 &#x3D;&gt; uint256) votes
-```
-
-### lockPeriod
-
-```solidity
-uint256 lockPeriod
-```
-
-### constructor
-
-```solidity
-constructor(address _token) public
-```
-
-### updateLockTime
-
-```solidity
-function updateLockTime(uint256 newPeriod) public
-```
-
-### balanceOf
-
-```solidity
-function balanceOf(address account) public view returns (uint256)
-```
-
-### vote
-
-```solidity
-function vote(uint256 voteID, uint256 votePower) public
-```
-
-### depositToken
-
-```solidity
-function depositToken(uint256 amount) public
-```
-
-### withdrawToken
-
-```solidity
-function withdrawToken(uint256 amount) public
-```
-
 ## PoSAdmin
+
+_Contract PoSAdmin - modifier for ProofOfStorage API&#x27;s
+- onlyOldAddress
+- onlyGovernance
+- whenNotPaused
+- whenPaused
+- onlyGateway_
 
 ### proofOfStorageAddress
 
@@ -2062,115 +1860,11 @@ function addGateway(address account) public
 function delGateway(address account) public
 ```
 
-## Reward
-
-### Transfer
-
-```solidity
-event Transfer(address from, address to, uint256 value)
-```
-
-### storageTokenAddress
-
-```solidity
-address storageTokenAddress
-```
-
-### rewardLimit
-
-```solidity
-uint256 rewardLimit
-```
-
-### rewarded
-
-```solidity
-mapping(address &#x3D;&gt; uint256) rewarded
-```
-
-### constructor
-
-```solidity
-constructor(address _tokAddress) public
-```
-
-### addReward
-
-```solidity
-function addReward(address _reciever, uint256 _amount) public
-```
-
-## SmartStaking
-
-### holderShare
-
-```solidity
-mapping(address &#x3D;&gt; uint256) holderShare
-```
-
-### holderPurschasedBalance
-
-```solidity
-mapping(address &#x3D;&gt; uint256) holderPurschasedBalance
-```
-
-### holderdBalance
-
-```solidity
-mapping(address &#x3D;&gt; uint256) holderdBalance
-```
-
-### holderStatus
-
-```solidity
-mapping(address &#x3D;&gt; uint8) holderStatus
-```
-
-### SHARES_RATIO
-
-```solidity
-uint256 SHARES_RATIO
-```
-
-### LOST_PROFIT
-
-```solidity
-uint256 LOST_PROFIT
-```
-
-### LOST_STAKING
-
-```solidity
-uint256 LOST_STAKING
-```
-
-### _dropFromStaking
-
-```solidity
-function _dropFromStaking(address _holderAddress) internal
-```
-
-### _dropFromProfit
-
-```solidity
-function _dropFromProfit(address _holderAddress) internal
-```
-
-### getHolderStatus
-
-```solidity
-function getHolderStatus(address _holder) public view returns (uint8)
-```
-
-@return uint9 (0-2): 0 - Extra is availalbe, 1 - Loose extra, 2 - Loose All
-
-### changeBalance
-
-```solidity
-function changeBalance(address _holderAddress, uint256 _balance) public
-```
-
 ## Wrapper
+
+_Contract WNFT - Wrapped NFT made for NFT Staking program in DeNet
+- Minimal reward ~1MB
+- Amount of reward 5% (constant) of traffic, will upgraded in future with governance_
 
 ### _rewardTokenAddress
 
@@ -2396,66 +2090,12 @@ function updateVersion(uint256 tokenId, string dAppURI, bytes32 contentHash) ext
 function CreateDApp(string dAppURI, bytes32 _contentHash) external
 ```
 
-## IGovernance
-
-### Deposit
-
-```solidity
-event Deposit(address to, uint256 amount)
-```
-
-### Withdraw
-
-```solidity
-event Withdraw(address to, uint256 amount)
-```
-
 ## IPoSAdmin
 
 ### ChangePoSAddress
 
 ```solidity
 event ChangePoSAddress(address newPoSAddress)
-```
-
-## ISmartStaking
-
-### changeBalance
-
-```solidity
-function changeBalance(address _holderAddress, uint256 _balance) external
-```
-
-### getHolderStatus
-
-```solidity
-function getHolderStatus(address _holder) external view returns (uint8)
-```
-
-## IStorageToken
-
-### getDepositRate
-
-```solidity
-function getDepositRate(uint256 amount) external view returns (uint256)
-```
-
-### balanceOf
-
-```solidity
-function balanceOf(address _user) external view returns (uint256)
-```
-
-### transfer
-
-```solidity
-function transfer(address recipient, uint256 amount) external returns (bool)
-```
-
-### approve
-
-```solidity
-function approve(address spender, uint256 amount) external returns (bool)
 ```
 
 ## IWrapper

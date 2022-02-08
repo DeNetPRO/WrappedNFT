@@ -1,14 +1,19 @@
 // SPDX-License-Identifier: MIT
-/*
-    Created by DeNet
-
-    Contract is modifier only
-*/
 
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IPoSAdmin.sol";
+
+/**
+    @dev Contract PoSAdmin - modifier for ProofOfStorage API's
+
+    - onlyOldAddress
+    - onlyGovernance
+    - whenNotPaused
+    - whenPaused
+    - onlyGateway
+*/
 
 contract PoSAdmin  is IPoSAdmin, Ownable {
     address public proofOfStorageAddress = address(0);
