@@ -2299,7 +2299,7 @@ _Claim many_
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| _itemIds | uint256[] | - array of NFTids owned by user |
+| _itemIds | uint256[] | array of NFTids owned by user |
 
 ### wrap
 

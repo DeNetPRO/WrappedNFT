@@ -120,7 +120,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
 
     /**
         @dev Claim many
-        @param _itemIds - array of NFTids owned by user
+        @param _itemIds array of NFTids owned by user
     */
     function claimRewardMany(uint[] calldata _itemIds) public override whenNotPaused {
         for (uint i = 0; i < _itemIds.length; i = i + 1) {
