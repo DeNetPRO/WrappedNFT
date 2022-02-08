@@ -4,10 +4,15 @@ require('dotenv').config();
 require('hardhat-deploy');
 require('hardhat-gas-reporter');
 require('solidity-coverage');
+require('solidity-docgen');
 
 const networks = require('./hardhat.networks');
 
 module.exports = {
+    docgen: {
+
+    },
+    
     etherscan: {
         apiKey: process.env.ETHERSCAN_KEY,
     },
