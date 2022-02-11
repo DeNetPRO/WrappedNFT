@@ -1674,12 +1674,6 @@ _SafeTransferFrom require this function_
 
 ## DeNetDNS
 
-### _TBAddress
-
-```solidity
-address _TBAddress
-```
-
 ### constructor
 
 ```solidity
@@ -1740,22 +1734,16 @@ _Contract PoSAdmin - modifier for ProofOfStorage API&#x27;s
 address proofOfStorageAddress
 ```
 
-### newAddress
-
-```solidity
-address newAddress
-```
-
 ### governanceAddress
 
 ```solidity
 address governanceAddress
 ```
 
-### oldAddress
+### _rewardTokenAddress
 
 ```solidity
-address oldAddress
+address _rewardTokenAddress
 ```
 
 ### paused
@@ -1773,13 +1761,7 @@ mapping(address &#x3D;&gt; bool) _isGateway
 ### constructor
 
 ```solidity
-constructor(address _pos) public
-```
-
-### onlyOldAddress
-
-```solidity
-modifier onlyOldAddress()
+constructor(address _pos, address _reward) public
 ```
 
 ### onlyGovernance
@@ -1818,18 +1800,6 @@ function unpause() external
 function changeGovernance(address _new) external
 ```
 
-### setOldAddress
-
-```solidity
-function setOldAddress(address _new) external
-```
-
-### setNewAddress
-
-```solidity
-function setNewAddress(address _new) external
-```
-
 ### onlyPoS
 
 ```solidity
@@ -1860,25 +1830,27 @@ function addGateway(address account) public
 function delGateway(address account) public
 ```
 
+### updateRewardTokenAddress
+
+```solidity
+function updateRewardTokenAddress(address _new) public
+```
+
+_Possibility update token address for next updates, will removed at finalized version_
+
 ## Wrapper
 
 _Contract WNFT - Wrapped NFT made for NFT Staking program in DeNet
 - Minimal reward ~1MB
 - Amount of reward 5% (constant) of traffic, will upgraded in future with governance_
 
-### _rewardTokenAddress
-
-```solidity
-address _rewardTokenAddress
-```
-
-_Address of TB Token_
-
 ### constructor
 
 ```solidity
 constructor(address tbAddress) public
 ```
+
+_Address of TB Token_
 
 ### _totalSupply
 
