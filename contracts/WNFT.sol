@@ -20,28 +20,43 @@ import "./interfaces/IWNFT.sol";
 
 contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
     using SafeMath for uint;
-    /**
-        @dev Address of TB Token
-    */
-
     constructor (address tbAddress) ERC721("DeNet WrappedNFT v1.1.0_beta_1", "WNFT") PoSAdmin(address(0), tbAddress) {
     }
     
     uint256 private _totalSupply = 1;
     uint256 private _totalTraffic = 0;
-    uint public referalFee = 500; // 5% 
-    uint public feePoint = 10000;
+    uint private constant _REFERAL_FEE = 500; // 5% 
+    uint private constant _FEE_POINT = 10000;
+    uint private constant _ONE_GB = 1024 ** 3;
+    uint private constant _DECIMALS_18 = 10e18;
+    uint private constant _MIN_SHARE = 953674316406; // 1 TB (_DECIMALS_18) / (2**20)
 
     mapping (uint => WrappedStruct) private _wrappedData;
 
     /**
-        @dev Collect Traffic to NFT's and transfer referalFee to this contract
+        @dev Collect Traffic to NFT's and transfer _REFERAL_FEE to this contract
+            charged - amount of tokens will transfered from sender to pay for traffic
+            charged = (Traffic After - Traffic Before) x _REFERAL_FEE x _DECIMALS_18 
+            amount_to_transfer = charged / _ONE_GB
+            _TB_TOKEN.transferFrom(sender, this, amount_to_transfer)
+
+        Example:
+            Traffic Before = 10 (MB)
+            Traffic After = 110 (MB)
+            _REFERAL_FEE = 5 (%)
+            _ONE_GB = 1024 ** 3
+
+            charged = (110 - 10) x 5% x 10e18 = 5 x 10e18
+            amount_to_transfer = 5 x 10e18 / (1024 ** 3) 
+            amount_to_transfer = 0.0000000004656612873 TB = 4656612873 (UINT256)
+        
         @param length uint - size of arrays
         @param _tokenId - array of token ids [1,2,3]
-        @param _traffic - array of amount of bytes [1024^3, 5x1024^3, 10x1024^3]
+        @param _traffic - array of amount of MEGABYTES [5, 30, 25]
     */
     function collectTraffic(uint length, uint[] calldata _tokenId, uint[] calldata _traffic) public onlyGateway whenNotPaused {
         uint _trafficBefore = _totalTraffic;
+        
         for (uint i = 0; i < length; i = i + 1) {
             if (_exists(_tokenId[i])) {
                 require(_traffic[i] > 0, "collectTraffic: traffic == 0");
@@ -49,8 +64,8 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
                 _totalTraffic = _totalTraffic.add(_traffic[i]);
             }
         }
-        uint charged = _totalTraffic.sub(_trafficBefore).mul(referalFee).div(feePoint).div(1073741824).mul(10e18);
-
+        uint charged = _totalTraffic.sub(_trafficBefore).mul(_REFERAL_FEE).div(_FEE_POINT).mul(_DECIMALS_18).div(_ONE_GB);
+       
         IERC20 token = IERC20(_rewardTokenAddress);
         token.transferFrom(msg.sender, address(this),  charged);
     }
@@ -71,7 +86,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
         IERC20 token = IERC20(_rewardTokenAddress);
         uint curBalance = token.balanceOf(address(this));
         uint share =  _wrappedData[_itemId].traffic.sub(_wrappedData[_itemId].payedTraffic).mul(curBalance).div(_totalTraffic);
-        if (share < 953674316406) return 0; // means less 1 MB reward == 1 TB.div(2.pow(20)) == 953674316406
+        if (share < _MIN_SHARE) return 0;
         return share;
     }
 

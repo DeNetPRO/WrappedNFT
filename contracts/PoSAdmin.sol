@@ -7,17 +7,15 @@ import "./interfaces/IPoSAdmin.sol";
 
 /**
     @dev Contract PoSAdmin - modifier for ProofOfStorage API's
-
-    - onlyOldAddress
-    - onlyGovernance
-    - whenNotPaused
-    - whenPaused
-    - onlyGateway
 */
 
 contract PoSAdmin  is IPoSAdmin, Ownable {
     address public proofOfStorageAddress = address(0);
     address public governanceAddress;
+    
+    /**
+        @dev Address of TB Token
+    */
     address public _rewardTokenAddress;
 
     bool public paused = true;
