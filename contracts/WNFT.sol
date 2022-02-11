@@ -101,7 +101,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
         Check owner of itemId, no need to check _exist, because in exist check owner != 0
         @notice Approved operator can claim reward on own address
     */
-    function claimReward(uint _itemId) public override whenNotPaused {
+    function claimReward(uint _itemId) public override {
         require(ownerOf(_itemId) == msg.sender || isApprovedForAll(ownerOf(_itemId), msg.sender), "claim: not owner or approved");
         /*
             Check, if it NFT not burned and owner = address of WNFT
@@ -120,7 +120,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
         @dev Claim many
         @param _itemIds array of NFTids owned by user
     */
-    function claimRewardMany(uint[] calldata _itemIds) public override whenNotPaused {
+    function claimRewardMany(uint[] calldata _itemIds) public override {
         for (uint i = 0; i < _itemIds.length; i = i + 1) {
             claimReward(_itemIds[i]);
         }
@@ -133,7 +133,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
         2. TransferFrom origin to this
         3. Fill Metadata
     */
-    function wrap(address originAddress, uint256 tokenId, bytes32 originContentHash, string calldata storageURI, uint contentSize) public override whenNotPaused {
+    function wrap(address originAddress, uint256 tokenId, bytes32 originContentHash, string calldata storageURI, uint contentSize) public override {
         IERC721 origin = IERC721(originAddress);
         
         // transfer origin to this
@@ -173,7 +173,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
         2. Transfer to Sender
         3. Burn wrapped
     */
-    function unwrap(uint tokenId) public override whenNotPaused {
+    function unwrap(uint tokenId) public override {
         // check owner or approved
         require(ownerOf(tokenId) == msg.sender || isApprovedForAll(ownerOf(tokenId), msg.sender) , "unwrap: no access to this WNFT");
         
