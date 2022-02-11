@@ -24,7 +24,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
         @dev Address of TB Token
     */
 
-    constructor (address tbAddress) ERC721("DeNet WrappedNFT", "WNFT") PoSAdmin(address(0), tbAddress) {
+    constructor (address tbAddress) ERC721("DeNet WrappedNFT v1.1.0_beta_1", "WNFT") PoSAdmin(address(0), tbAddress) {
     }
     
     uint256 private _totalSupply = 1;
