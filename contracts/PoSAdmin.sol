@@ -20,12 +20,15 @@ contract PoSAdmin  is IPoSAdmin, Ownable {
     address public newAddress = address(0);
     address public governanceAddress;
     address public oldAddress;
+    address public _rewardTokenAddress;
+
     bool public paused = true;
     
     mapping(address => bool) _isGateway;
     
-    constructor (address _pos) {
+    constructor (address _pos, address _reward) {
         proofOfStorageAddress = _pos;
+        _rewardTokenAddress = _reward;
     }
 
     modifier onlyOldAddress() {
@@ -95,5 +98,12 @@ contract PoSAdmin  is IPoSAdmin, Ownable {
 
     function delGateway(address account) public onlyGovernance {
         _isGateway[account] = false;
+    }
+    
+    /**
+        @dev Possibility update token address for next updates, will removed at finalized version
+    */
+    function updateRewardTokenAddress(address _new) public onlyGovernance {
+        _rewardTokenAddress = _new;
     }
 }
