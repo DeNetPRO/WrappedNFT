@@ -30,8 +30,10 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
     uint private constant _ONE_GB = 1024 ** 3;
     uint private constant _DECIMALS_18 = 10e18;
     uint private constant _MIN_SHARE = 953674316406; // 1 TB (_DECIMALS_18) / (2**20)
+    uint private constant _two_weeks = 60*60*24*14;
 
     mapping (uint => WrappedStruct) private _wrappedData;
+    mapping (uint => uint) private _lastPassiveWithdraw;
 
     /**
         @dev Collect Traffic to NFT's and transfer _REFERAL_FEE to this contract
@@ -84,9 +86,15 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
         @return TB balance of this token
     */
     function getNFTBalance(uint _itemId) public view override returns(uint) {
+        uint timeLeft = block.timestamp - _lastPassiveWithdraw[_itemId];
+        if (timeLeft > _two_weeks) {
+            timeLeft = _two_weeks;
+        }
+
         IERC20 token = IERC20(_rewardTokenAddress);
         uint curBalance = token.balanceOf(address(this));
         uint share =  _wrappedData[_itemId].traffic.sub(_wrappedData[_itemId].payedTraffic).mul(curBalance).div(_totalTraffic);
+        share = share + (timeLeft * curBalance).div(_two_weeks).div(totalSupply());
         if (share < _MIN_SHARE) return 0;
         return share;
     }
@@ -129,6 +137,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
             _wrappedData[_itemId].payedTraffic = _wrappedData[_itemId].traffic;
             IERC20 token = IERC20(_rewardTokenAddress);
             token.transfer(msg.sender, amountReturns);
+            _lastPassiveWithdraw[_itemId] = block.timestamp;
         }
     }
 
@@ -173,6 +182,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
         _wrappedData[pointer].contentHash = originContentHash;
         _wrappedData[pointer].burned = false;
         _wrappedData[pointer].traffic = 1; // one megabyte of data traffic base
+        _lastPassiveWithdraw[pointer] = block.timestamp - 1;
         
         // mint WNFT with pointer
         _safeMint(msg.sender, pointer);
