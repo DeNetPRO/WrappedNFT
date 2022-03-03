@@ -58,6 +58,10 @@ contract('Wrapepr', async function ([_, w1, w2, w3]) {
                 1048576, { from: treasuryWallet });
             
             const WrappedId = await this.WrappedContract.tokenOfOwnerByIndex(treasuryWallet, 0);
+            await this.WrappedContract.addGateway(treasuryWallet, {from: GovernanceWallet});
+            await this.token.approve(this.WrappedContract.address, "100000000000", {from: treasuryWallet});
+            await this.token.mint(treasuryWallet, "100000000000");
+            await this.WrappedContract.collectTraffic(1, [WrappedId], [1], {from: treasuryWallet});
             await this.WrappedContract.unwrap(WrappedId, { from: treasuryWallet });
         }
     });

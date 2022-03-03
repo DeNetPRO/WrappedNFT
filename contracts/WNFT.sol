@@ -55,16 +55,17 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
         @param _traffic - array of amount of MEGABYTES [5, 30, 25]
     */
     function collectTraffic(uint length, uint[] calldata _tokenId, uint[] calldata _traffic) public onlyGateway whenNotPaused {
-        uint _trafficBefore = _totalTraffic;
+        uint _collectedTraffic = 0;
         
         for (uint i = 0; i < length; i = i + 1) {
             if (_exists(_tokenId[i])) {
                 require(_traffic[i] > 0, "collectTraffic: traffic == 0");
                 _wrappedData[_tokenId[i]].traffic = _wrappedData[_tokenId[i]].traffic.add(_traffic[i]);
                 _totalTraffic = _totalTraffic.add(_traffic[i]);
+                _collectedTraffic = _collectedTraffic + _traffic[i];
             }
         }
-        uint charged = _totalTraffic.sub(_trafficBefore).mul(_REFERAL_FEE).div(_FEE_POINT).mul(_DECIMALS_18).div(_ONE_GB);
+        uint charged = _collectedTraffic.mul(_REFERAL_FEE).div(_FEE_POINT).mul(_DECIMALS_18).div(_ONE_GB);
        
         IERC20 token = IERC20(_rewardTokenAddress);
         token.transferFrom(msg.sender, address(this),  charged);
