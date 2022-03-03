@@ -20,7 +20,7 @@ import "./interfaces/IWNFT.sol";
 
 contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
     using SafeMath for uint;
-    constructor (address tbAddress) ERC721("DeNet WrappedNFT v1.1.0_beta_1", "WNFT") PoSAdmin(address(0), tbAddress) {
+    constructor (address tbAddress) ERC721("DeNet WrappedNFT v1.1.0_beta_2", "WNFT") PoSAdmin(address(0), tbAddress) {
     }
     
     uint256 private _totalSupply = 1;
@@ -56,7 +56,7 @@ contract Wrapper is PoSAdmin, IWrapper, ERC721Enumerable {
         @param _tokenId - array of token ids [1,2,3]
         @param _traffic - array of amount of MEGABYTES [5, 30, 25]
     */
-    function collectTraffic(uint length, uint[] calldata _tokenId, uint[] calldata _traffic) public onlyGateway whenNotPaused {
+    function collectTraffic(uint length, uint[] calldata _tokenId, uint[] calldata _traffic) public onlyGateway whenNotPaused { 
         uint _collectedTraffic = 0;
         
         for (uint i = 0; i < length; i = i + 1) {
