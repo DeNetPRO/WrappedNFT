@@ -9,6 +9,7 @@ contract('Wrapepr', async function ([_, w1, w2, w3]) {
     beforeEach(async function () {
         this.token = await TokenMock.new('Terabyte/Years Token', 'TB/Year');
         this.ExampleNFT = await ExampleNFT.new('Examole', 'ENFT');
+        await this.ExampleNFT.mintMe('denet://denet.nft/1.json');
         this.WrappedContract = await WrappedNFT.new(this.token.address);
         await this.WrappedContract.changeGovernance(GovernanceWallet);
         await this.WrappedContract.unpause({ from: GovernanceWallet });
@@ -21,7 +22,7 @@ contract('Wrapepr', async function ([_, w1, w2, w3]) {
         let tokenId;
         
         for (let i = 0; i < 5; i = i + 1) {
-            await this.ExampleNFT.mintMe({ from: treasuryWallet });
+            await this.ExampleNFT.mintMe('denet://denet.nft/test.json', { from: treasuryWallet });
             tokenId = await this.ExampleNFT.counter();
             console.log('Token id:', tokenId.toString());
             
@@ -42,7 +43,7 @@ contract('Wrapepr', async function ([_, w1, w2, w3]) {
         let tokenId;
         
         for (let i = 0; i < 5; i = i + 1) {
-            await this.ExampleNFT.mintMe({ from: treasuryWallet });
+            await this.ExampleNFT.mintMe('denet://denet.nft/test.json', { from: treasuryWallet });
             tokenId = await this.ExampleNFT.counter();
             console.log('Token id:', tokenId.toString());
             
